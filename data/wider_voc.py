@@ -82,6 +82,7 @@ class VOCDetection(data.Dataset):
         self.ids = list()
         with open(os.path.join(self.root, 'img_list.txt'), 'r') as f:
           self.ids = [tuple(line.split()) for line in f]
+        # self.ids = self.ids[:128]
 
     def __getitem__(self, index):
         img_id = self.ids[index]

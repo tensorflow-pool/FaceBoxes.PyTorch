@@ -1,6 +1,8 @@
+# coding=utf-8
 from __future__ import print_function
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 import torch
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
@@ -15,11 +17,11 @@ import math
 from models.faceboxes import FaceBoxes
 
 parser = argparse.ArgumentParser(description='FaceBoxes Training')
-parser.add_argument('--training_dataset', default='./data/WIDER_FACE', help='Training dataset directory')
+parser.add_argument('--training_dataset', default='~/datasets/widerface/WIDER_train', help='Training dataset directory')
 parser.add_argument('-b', '--batch_size', default=32, type=int, help='Batch size for training')
 parser.add_argument('--num_workers', default=8, type=int, help='Number of workers used in dataloading')
 parser.add_argument('--cuda', default=True, type=bool, help='Use cuda to train model')
-parser.add_argument('--ngpu', default=2, type=int, help='gpus')
+parser.add_argument('--ngpu', default=1, type=int, help='gpus')
 parser.add_argument('--lr', '--learning-rate', default=1e-3, type=float, help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, help='momentum')
 parser.add_argument('--resume_net', default=None, help='resume net for retraining')
@@ -50,11 +52,12 @@ if args.resume_net is not None:
     state_dict = torch.load(args.resume_net)
     # create new OrderedDict that does not contain `module.`
     from collections import OrderedDict
+
     new_state_dict = OrderedDict()
     for k, v in state_dict.items():
         head = k[:7]
         if head == 'module.':
-            name = k[7:] # remove `module.`
+            name = k[7:]  # remove `module.`
         else:
             name = k
         new_state_dict[name] = v
@@ -82,9 +85,12 @@ def train():
     epoch = 0 + args.resume_epoch
     print('Loading Dataset...')
 
+    args.training_dataset = os.path.expanduser(args.training_dataset)
     dataset = VOCDetection(args.training_dataset, preproc(img_dim, rgb_means), AnnotationTransform())
 
-    epoch_size = math.ceil(len(dataset) / args.batch_size)
+    print("len(dataset):", len(dataset))
+    epoch_size = int(math.ceil(len(dataset) / args.batch_size))
+    print("epoch_size:", epoch_size)
     max_iter = args.max_epoch * epoch_size
 
     stepvalues = (200 * epoch_size, 250 * epoch_size)
@@ -119,7 +125,7 @@ def train():
 
         # forward
         out = net(images)
-        
+
         # backprop
         optimizer.zero_grad()
         loss_l, loss_c = criterion(out, priors, targets)
@@ -128,7 +134,7 @@ def train():
         optimizer.step()
         load_t1 = time.time()
         print('Epoch:' + repr(epoch) + ' || epochiter: ' + repr(iteration % epoch_size) + '/' + repr(epoch_size) +
-              '|| Totel iter ' + repr(iteration) + ' || L: %.4f C: %.4f||' % (cfg['loc_weight']*loss_l.item(), loss_c.item()) +
+              '|| Totel iter ' + repr(iteration) + ' || L: %.4f C: %.4f||' % (cfg['loc_weight'] * loss_l.item(), loss_c.item()) +
               'Batch time: %.4f sec. ||' % (load_t1 - load_t0) + 'LR: %.8f' % (lr))
 
     torch.save(net.state_dict(), args.save_folder + 'Final_FaceBoxes.pth')
@@ -140,12 +146,13 @@ def adjust_learning_rate(optimizer, gamma, epoch, step_index, iteration, epoch_s
     # https://github.com/pytorch/examples/blob/master/imagenet/main.py
     """
     if epoch < 0:
-        lr = 1e-6 + (args.lr-1e-6) * iteration / (epoch_size * 5) 
+        lr = 1e-6 + (args.lr - 1e-6) * iteration / (epoch_size * 5)
     else:
         lr = args.lr * (gamma ** (step_index))
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
     return lr
-    
+
+
 if __name__ == '__main__':
     train()

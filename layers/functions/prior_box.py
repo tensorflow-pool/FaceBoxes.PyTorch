@@ -1,3 +1,4 @@
+# coding=utf-8
 import torch
 from itertools import product as product
 import numpy as np
