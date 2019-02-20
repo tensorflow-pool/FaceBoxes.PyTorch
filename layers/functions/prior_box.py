@@ -28,8 +28,8 @@ class PriorBox(object):
             min_sizes = self.min_sizes[k]
             for i, j in product(range(f[0]), range(f[1])):
                 for min_size in min_sizes:
-                    s_kx = min_size / self.image_size[1]
-                    s_ky = min_size / self.image_size[0]
+                    s_kx = 1.0 * min_size / self.image_size[1]
+                    s_ky = 1.0 * min_size / self.image_size[0]
                     if min_size == 32:
                         dense_cx = [x*self.steps[k]/self.image_size[1] for x in [j+0, j+0.25, j+0.5, j+0.75]]
                         dense_cy = [y*self.steps[k]/self.image_size[0] for y in [i+0, i+0.25, i+0.5, i+0.75]]

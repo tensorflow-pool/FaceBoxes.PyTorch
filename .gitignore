@@ -2,3 +2,7 @@
 .idea
 *.so
 build
+
+data/**/images
+eval
+weights
