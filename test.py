@@ -14,7 +14,7 @@ from utils.timer import Timer
 
 parser = argparse.ArgumentParser(description='FaceBoxes')
 
-parser.add_argument('-m', '--trained_model', default='weights/FaceBoxes.pth',
+parser.add_argument('-m', '--trained_model', default='weights_r730/FaceBoxes_epoch_10.pth',
                     type=str, help='Trained state_dict file path to open')
 parser.add_argument('--save_folder', default='eval/', type=str, help='Dir to save results')
 parser.add_argument('--cuda', default=True, type=bool, help='Use cuda to train model')
@@ -76,7 +76,7 @@ if __name__ == '__main__':
     # save file
     if not os.path.exists(args.save_folder):
         os.makedirs(args.save_folder)
-    fw = open(os.path.join(args.save_folder, "maysa_", args.dataset + '_dets.txt'), 'w')
+    fw = open(os.path.join(args.save_folder, "maysa_" + args.dataset + '_dets.txt'), 'w')
 
     # testing dataset
     testset_folder = os.path.join('data', args.dataset, 'images/')

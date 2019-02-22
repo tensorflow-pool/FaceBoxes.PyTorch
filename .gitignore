@@ -10,3 +10,7 @@ weights
 
 MaysaFaceboxesContROC.txt
 MaysaFaceboxesDiscROC.txt
+weights_*
+
+face-eval/*.pdf
+weight_730
