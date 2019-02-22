@@ -14,7 +14,7 @@ from utils.timer import Timer
 
 parser = argparse.ArgumentParser(description='FaceBoxes')
 
-parser.add_argument('-m', '--trained_model', default='weights_r730/FaceBoxes_epoch_10.pth',
+parser.add_argument('-m', '--trained_model', default='weights_r730/FaceBoxes_epoch_20.pth',
                     type=str, help='Trained state_dict file path to open')
 parser.add_argument('--save_folder', default='eval/', type=str, help='Dir to save results')
 parser.add_argument('--cuda', default=True, type=bool, help='Use cuda to train model')

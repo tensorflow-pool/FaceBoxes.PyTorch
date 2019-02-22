@@ -2,18 +2,16 @@
 
 # plots all the PR curves for fddb
 # As in this case we do not optimize the bbox, we use a separate code
-#import matplotlib
+# import matplotlib
 # matplotlib.use('Agg')
 import glob
+
 import numpy
-import pylab
-import os
-import sys
+
 from getColorLabel import *
 
 
 def load_fddb(ff):
-    print ff
     ftxt = open(ff, "rb")
     if ff == "detections/fddb/OlaworksDiscROC.txt":
         data = numpy.genfromtxt(ftxt, delimiter="\t")
@@ -33,7 +31,7 @@ def load_fddb(ff):
     color, label = getColorLabel(label)
     pos = numpy.where(data[:, 1] < 1000)[0][0]
     pr = data[pos, 0]
-    print pr
+    print("file {} acc {} @far=1000".format(ff, pr))
     label = label + " (%0.3f)" % (pr)
     plotid, = pylab.plot(data[:, 1], data[:, 0], color=color, linewidth=5)
     return plotid, pr, label
@@ -41,6 +39,7 @@ def load_fddb(ff):
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(
         description='Plots AP curves on fddb faces')
     parser.add_argument('detfile', type=str, nargs="?",
@@ -66,7 +65,7 @@ if __name__ == "__main__":
     for this_idx, i in enumerate(method):
         ii.append(i[2])
         ll.append(i[3])
-        pylab.setp(i[2],  zorder=len(method) - this_idx)
+        pylab.setp(i[2], zorder=len(method) - this_idx)
 
     pylab.legend(ii, ll, loc='lower right', ncol=2)
     pylab.ylabel("True positive rate")
