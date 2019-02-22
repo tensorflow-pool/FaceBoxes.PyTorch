@@ -6,3 +6,7 @@ build
 data/**/images
 eval
 weights
+
+
+MaysaFaceboxesContROC.txt
+MaysaFaceboxesDiscROC.txt
