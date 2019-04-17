@@ -1,5 +1,7 @@
 # coding=utf-8
 from __future__ import print_function
+
+import logging
 import os
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -24,7 +26,7 @@ parser.add_argument('--cuda', default=True, type=bool, help='Use cuda to train m
 parser.add_argument('--ngpu', default=1, type=int, help='gpus')
 parser.add_argument('--lr', '--learning-rate', default=1e-3, type=float, help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, help='momentum')
-parser.add_argument('--resume_net', default=None, help='resume net for retraining')
+parser.add_argument('--resume_net', default="./weights/FaceBoxes_epoch_295.pth", help='resume net for retraining')
 parser.add_argument('--resume_epoch', default=0, type=int, help='resume iter for retraining')
 parser.add_argument('-max', '--max_epoch', default=300, type=int, help='max epoch for retraining')
 parser.add_argument('--weight_decay', default=5e-4, type=float, help='Weight decay for SGD')
@@ -71,7 +73,7 @@ if args.cuda:
     cudnn.benchmark = True
 
 optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
-criterion = MultiBoxLoss(num_classes, 0.35, True, 0, True, 7, 0.35, False)
+criterion = MultiBoxLoss(num_classes, 0.35, True, 0, True, 3, 0.35, False)
 
 priorbox = PriorBox(cfg)
 with torch.no_grad():
@@ -81,16 +83,29 @@ with torch.no_grad():
 
 
 def train():
+    prefix = time.strftime("%Y-%m-%d-%H:%M:%S")
+    file_path = "models_{}".format(prefix)
+    if not os.path.exists(file_path):
+        os.mkdir(file_path)
+    logging.basicConfig()
+    logging.getLogger().setLevel(logging.INFO)
+    fh = logging.FileHandler("{}/train.log".format(file_path))
+    # create formatter#
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    # add formatter to ch
+    fh.setFormatter(formatter)
+    logging.getLogger().addHandler(fh)
+
     net.train()
     epoch = 0 + args.resume_epoch
-    print('Loading Dataset...')
+    logging.info('Loading Dataset...')
 
     args.training_dataset = os.path.expanduser(args.training_dataset)
     dataset = VOCDetection(args.training_dataset, preproc(img_dim, rgb_means), AnnotationTransform())
 
-    print("len(dataset):", len(dataset))
+    logging.info("len(dataset): %s", len(dataset))
     epoch_size = int(math.ceil(len(dataset) / args.batch_size))
-    print("epoch_size:", epoch_size)
+    logging.info("epoch_size: %s", epoch_size)
     max_iter = args.max_epoch * epoch_size
 
     stepvalues = (200 * epoch_size, 250 * epoch_size)
@@ -106,7 +121,7 @@ def train():
             # create batch iterator
             batch_iterator = iter(data.DataLoader(dataset, batch_size, shuffle=True, num_workers=args.num_workers, collate_fn=detection_collate))
             if (epoch % 10 == 0 and epoch > 0) or (epoch % 5 == 0 and epoch > 200):
-                torch.save(net.state_dict(), args.save_folder + 'FaceBoxes_epoch_' + repr(epoch) + '.pth')
+                torch.save(net.state_dict(), file_path + 'FaceBoxes_epoch_' + repr(epoch) + '.pth')
             epoch += 1
 
         load_t0 = time.time()
@@ -133,10 +148,12 @@ def train():
         loss.backward()
         optimizer.step()
         load_t1 = time.time()
-        print('Epoch:' + repr(epoch) + ' || epochiter: ' + repr(iteration % epoch_size) + '/' + repr(epoch_size) +
-              '|| Totel iter ' + repr(iteration) + ' || L: %.4f C: %.4f||' % (cfg['loc_weight'] * loss_l.item(), loss_c.item()) +
-              'Batch time: %.4f sec. ||' % (load_t1 - load_t0) + 'LR: %.8f' % (lr))
+        # logging.info('Epoch:' + repr(epoch) + ' || epochiter: ' + repr(iteration % epoch_size) + '/' + repr(epoch_size) +
+        #              '|| Totel iter ' + repr(iteration) + ' || L: %.4f C: %.4f||' % (cfg['loc_weight'] * loss_l.item(), loss_c.item()) +
+        #              'Batch time: %.4f sec. ||' % (load_t1 - load_t0) + 'LR: %.8f' % (lr))
 
+        logging.info("epoch %s epochiter %s epoch_size %s iteration %s loss %s l_loss %s c_loss %s",
+                     epoch, iteration % epoch_size, epoch_size, iteration, loss.item(), loss_l.item(), loss_c.item())
     torch.save(net.state_dict(), args.save_folder + 'Final_FaceBoxes.pth')
 
 
