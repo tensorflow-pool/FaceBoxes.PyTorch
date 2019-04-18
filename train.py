@@ -26,7 +26,8 @@ parser.add_argument('--cuda', default=True, type=bool, help='Use cuda to train m
 parser.add_argument('--ngpu', default=1, type=int, help='gpus')
 parser.add_argument('--lr', '--learning-rate', default=1e-3, type=float, help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, help='momentum')
-parser.add_argument('--resume_net', default="./weights/FaceBoxes_epoch_295.pth", help='resume net for retraining')
+# parser.add_argument('--resume_net', default="./weights/FaceBoxes_epoch_295.pth", help='resume net for retraining')
+parser.add_argument('--resume_net', default=None, help='resume net for retraining')
 parser.add_argument('--resume_epoch', default=0, type=int, help='resume iter for retraining')
 parser.add_argument('-max', '--max_epoch', default=300, type=int, help='max epoch for retraining')
 parser.add_argument('--weight_decay', default=5e-4, type=float, help='Weight decay for SGD')
@@ -120,8 +121,8 @@ def train():
         if iteration % epoch_size == 0:
             # create batch iterator
             batch_iterator = iter(data.DataLoader(dataset, batch_size, shuffle=True, num_workers=args.num_workers, collate_fn=detection_collate))
-            if (epoch % 10 == 0 and epoch > 0) or (epoch % 5 == 0 and epoch > 200):
-                torch.save(net.state_dict(), file_path + 'FaceBoxes_epoch_' + repr(epoch) + '.pth')
+            if (epoch % 1 == 0 and epoch > 0) or (epoch % 2 == 0 and epoch > 200):
+                torch.save(net.state_dict(), file_path + '/FaceBoxes_epoch_' + repr(epoch) + '.pth')
             epoch += 1
 
         load_t0 = time.time()
