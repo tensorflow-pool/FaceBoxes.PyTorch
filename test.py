@@ -15,15 +15,15 @@ from utils.timer import Timer
 parser = argparse.ArgumentParser(description='FaceBoxes')
 
 # parser.add_argument('-m', '--trained_model', default='models_2019-04-17-17:59:00/FaceBoxes_epoch_9.pth', type=str)
-parser.add_argument('-m', '--trained_model', default='weights/FaceBoxes_epoch_295.pth', type=str)
+parser.add_argument('-m', '--trained_model', default='weights_r730/FaceBoxes_epoch_150.pth', type=str)
 parser.add_argument('--save_folder', default='eval/', type=str, help='Dir to save results')
 parser.add_argument('--cuda', default=True, type=bool, help='Use cuda to train model')
 parser.add_argument('--cpu', default=False, type=bool, help='Use cpu nms')
 parser.add_argument('--dataset', default='FDDB', type=str, choices=['AFW', 'PASCAL', 'FDDB'], help='dataset')
 parser.add_argument('--confidence_threshold', default=0.05, type=float, help='confidence_threshold')
-parser.add_argument('--top_k', default=5000, type=int, help='top_k')
-parser.add_argument('--nms_threshold', default=0.3, type=float, help='nms_threshold')
-parser.add_argument('--keep_top_k', default=750, type=int, help='keep_top_k')
+parser.add_argument('--top_k', default=400, type=int, help='top_k')
+parser.add_argument('--nms_threshold', default=0.35, type=float, help='nms_threshold')
+parser.add_argument('--keep_top_k', default=400, type=int, help='keep_top_k')
 args = parser.parse_args()
 
 
@@ -100,9 +100,13 @@ if __name__ == '__main__':
         image_path = testset_folder + img_name + '.jpg'
         img = np.float32(cv2.imread(image_path, cv2.IMREAD_COLOR))
         if resize != 1:
-            img = cv2.resize(img, None, None, fx=resize, fy=resize, interpolation=cv2.INTER_LINEAR)
-        im_height, im_width, _ = img.shape
+                img = cv2.resize(img, None, None, fx=resize, fy=resize, interpolation=cv2.INTER_LINEAR)
+
         scale = torch.Tensor([img.shape[1], img.shape[0], img.shape[1], img.shape[0]])
+        # if args.dataset == "FDDB":
+        #     img = cv2.resize(img, (1024, 1024), interpolation=cv2.INTER_LINEAR)
+
+        im_height, im_width, _ = img.shape
         img -= (104, 117, 123)
         img = img.transpose(2, 0, 1)
         img = torch.from_numpy(img).unsqueeze(0)
